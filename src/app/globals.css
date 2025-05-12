@@ -39,5 +39,8 @@ body {
 .animate-fadeUp {
   animation: fadeUp 0.5s ease forwards;
 }
+.backface-hidden {
+  backface-visibility: hidden;
+}
 
 
