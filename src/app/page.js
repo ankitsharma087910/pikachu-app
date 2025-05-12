@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { ClipLoader } from "react-spinners";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const LIMIT = 20;
 
@@ -10,6 +11,7 @@ const Page = () => {
   const [offset, setOffset] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+
   const loaderRef = useRef(null);
 
   const fetchData = async () => {
@@ -27,10 +29,10 @@ const Page = () => {
           return {
             name: info?.name,
             image: info?.sprites.front_default,
-            abilities: info?.abilities.map((a) => a.ability.name),
-            types: info?.types.map((t) => t.type.name),
-            height: info?.height,
-            weight: info?.weight,
+            stats: info?.stats?.map(stat => ({
+              name: stat?.stat?.name,
+              value: stat?.base_stat,
+            })),
           };
         })
       );
@@ -52,16 +54,18 @@ const Page = () => {
       const res = await fetch(
         `https://pokeapi.co/api/v2/pokemon/${searchQuery.toLowerCase()}`
       );
+
       if (!res.ok) throw new Error("Not Found");
+
       const data = await res.json();
       setPokemonList([
         {
           name: data.name,
           image: data.sprites.front_default,
-          abilities: data.abilities.map((a) => a.ability.name),
-          types: data.types.map((t) => t.type.name),
-          height: data.height,
-          weight: data.weight,
+          stats: data.stats.map(stat => ({
+            name: stat.stat.name,
+            value: stat.base_stat,
+          })),
         },
       ]);
     } catch (error) {
@@ -78,7 +82,7 @@ const Page = () => {
   }, [offset, searchQuery]);
 
   useEffect(() => {
-    if (searchQuery) return;
+    if (searchQuery) return; // Disable infinite scroll while searching
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -126,43 +130,7 @@ const Page = () => {
       <div className="grid w-full h-full p-10 grid-cols-2 md:grid-cols-4 gap-10">
         {pokemonList?.length > 0
           ? pokemonList.map((pokemon, index) => (
-              <div
-                key={index}
-                className="w-full h-60 [perspective:1000px] group relative"
-              >
-                <div className="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
-                  {/* Front */}
-                  <div className="absolute w-full h-full rounded-xl bg-white text-red-600 flex flex-col items-center justify-center shadow-lg backface-hidden">
-                    <img
-                      src={pokemon?.image}
-                      alt={pokemon?.name}
-                      className="w-24 h-24 object-contain"
-                    />
-                    <p className="mt-3 capitalize font-semibold">
-                      {pokemon?.name}
-                    </p>
-                  </div>
-
-                  {/* Back */}
-                  <div className="absolute w-full h-full rounded-xl bg-gray-800 text-white p-3 flex flex-col justify-center items-center [transform:rotateY(180deg)] backface-hidden">
-                    <p className="text-sm md:text-xl font-semibold mb-1">Abilities:</p>
-                    <ul className=" text-xs md:text-sm mb-2 text-center">
-                      {pokemon?.abilities?.map((a, i) => (
-                        <li key={i}>{a}</li>
-                      ))}
-                    </ul>
-                    <p className="text-sm md:text-xl">
-                      Types: {pokemon.types?.join(", ")}
-                    </p>
-                    <p className="text-xs md:text-sm mt-1">
-                      Height: {pokemon.height}
-                    </p>
-                    <p className="text-xs md:text-sm">
-                      Weight: {pokemon.weight}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <PokemonCard key={index} pokemon={pokemon} />
             ))
           : hasSearched &&
             !isLoading && (
@@ -183,6 +151,39 @@ const Page = () => {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+const PokemonCard = ({ pokemon }) => {
+  return (
+    <div className="relative w-full h-64 perspective group">
+      <div
+        className={`transition-transform duration-500 transform-style-preserve-3d w-full h-full group-hover:rotate-y-180`}
+      >
+        {/* Front */}
+        <div className="absolute w-full h-full backface-hidden bg-white text-red-600 rounded-xl shadow-lg p-4 text-center flex flex-col items-center justify-center">
+          <img
+            src={pokemon.image}
+            alt={pokemon.name}
+            className="w-24 h-24 object-contain"
+          />
+          <p className="mt-3 capitalize font-semibold">{pokemon.name}</p>
+        </div>
+
+        {/* Back */}
+        <div className="absolute w-full h-full rotate-y-180 backface-hidden bg-blue-100 text-black rounded-xl shadow-lg p-4 text-center flex flex-col items-center justify-center">
+          <p className="font-bold mb-2">Base Stats</p>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={pokemon.stats}>
+              <XAxis dataKey="name" hide />
+              <YAxis hide />
+              <Tooltip />
+              <Bar dataKey="value" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
