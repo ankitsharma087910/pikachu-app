@@ -9,9 +9,17 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
 } from "recharts";
-import Navbar from './../Navbar';
+import Navbar from "./../Navbar";
+import Link from "next/link";
+
 
 const LIMIT = 20;
+
+const ALL_TYPES = [
+  "normal", "fire", "water", "electric", "grass", "ice",
+  "fighting", "poison", "ground", "flying", "psychic",
+  "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
+];
 
 const Home = () => {
   const [pokemonList, setPokemonList] = useState([]);
@@ -19,6 +27,7 @@ const Home = () => {
   const [offset, setOffset] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState([]);
 
   const loaderRef = useRef(null);
 
@@ -49,7 +58,7 @@ const Home = () => {
   }, [offset]);
 
   useEffect(() => {
-    if (searchQuery) return;
+    if (searchQuery || selectedTypes.length > 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -67,18 +76,32 @@ const Home = () => {
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [isLoading, searchQuery]);
+  }, [isLoading, searchQuery, selectedTypes]);
 
-  const filteredList = searchQuery
-    ? pokemonList.filter((pokemon) =>
-        pokemon.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : pokemonList;
+  const handleTypeToggle = (type) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  const filteredList = pokemonList.filter((pokemon) => {
+    const matchesSearch = pokemon.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    const matchesType =
+      selectedTypes.length === 0 ||
+      pokemon.types.some((t) => selectedTypes.includes(t.type.name));
+
+    return matchesSearch && matchesType;
+  });
 
   return (
     <div className="w-full h-full p-10 bg-black min-h-screen text-white">
-      <Navbar/>
-      <div className="mb-5 flex items-center">
+      <Navbar />
+      <div className="mb-5 flex flex-col md:flex-row items-start gap-4">
         <input
           type="text"
           value={searchQuery}
@@ -89,6 +112,22 @@ const Home = () => {
           className="p-2 rounded-md bg-white text-black"
           placeholder="Search Pokémon"
         />
+
+        <div className="flex flex-wrap gap-2">
+          {ALL_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => handleTypeToggle(type)}
+              className={`px-3 py-1 text-sm rounded-full border ${
+                selectedTypes.includes(type)
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid w-full h-full p-10 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">
@@ -96,7 +135,7 @@ const Home = () => {
           ? filteredList.map((pokemon, index) => (
               <div
                 key={index}
-                className="group bg-white hover:bg-blue-300 text-red-600 hover:text-white transition-all rounded-xl shadow-lg p-4 text-center cursor-pointer h-64 relative"
+                className="group bg-white hover:bg-blue-300 text-red-600 hover:text-white transition-all rounded-xl shadow-lg p-4 text-center cursor-pointer h-72 relative"
               >
                 <div className="w-full h-full transition-transform duration-500 transform-style-preserve-3d group-hover:rotate-y-180">
                   {/* Front Side */}
@@ -152,6 +191,12 @@ const Home = () => {
                     </ResponsiveContainer>
                   </div>
                 </div>
+                <Link
+                  href={`/${pokemon.name}`}
+                  className="absolute text-center bottom-4 hover:scale-120 right-4 text-white  text-sm "
+                >
+                  Read More →
+                </Link>
               </div>
             ))
           : hasSearched &&
