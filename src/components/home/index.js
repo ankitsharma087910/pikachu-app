@@ -15,12 +15,6 @@ import Navbar from "../Navbar";
 
 const LIMIT = 20;
 
-const ALL_TYPES = [
-  "normal", "fire", "water", "electric", "grass", "ice",
-  "fighting", "poison", "ground", "flying", "psychic",
-  "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
-];
-
 const PokemonGrid = ({
   pokemonList,
   isLoading,
@@ -30,25 +24,11 @@ const PokemonGrid = ({
 }) => {
   const { togglePokemon, selected } = useComparison();
 
-  const handleTypeToggle = (type) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type]
-    );
-  };
-
-  const filteredList = pokemonList.filter((pokemon) => {
-    const matchesSearch = pokemon.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
-    const matchesType =
-      selectedTypes.length === 0 ||
-      pokemon.types.some((t) => selectedTypes.includes(t.type.name));
-
-    return matchesSearch && matchesType;
-  });
+  const filteredList = searchQuery
+    ? pokemonList.filter((pokemon) =>
+        pokemon.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : pokemonList;
 
   return (
     <div className="grid w-full h-full p-10 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">
@@ -203,7 +183,7 @@ const HomeContent = () => {
 
   return (
     <div className="w-full h-full p-10 bg-black min-h-screen text-white">
-      <Navbar/>
+      <Navbar />
       <CompareModal />
       <div className="mb-5 flex items-center">
         <input
@@ -235,4 +215,3 @@ const Home = () => (
 );
 
 export default Home;
-
