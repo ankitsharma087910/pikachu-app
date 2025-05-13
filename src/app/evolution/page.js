@@ -9,6 +9,7 @@ const getPokemonId = (url) => url.split("/").filter(Boolean).pop();
 const EvolutionPage = () => {
   const searchParams = useSearchParams();
   const pokemonQuery = searchParams.get("pokemon")?.toLowerCase() || "";
+
   const [pokemonName, setPokemonName] = useState(pokemonQuery);
   const [searchTerm, setSearchTerm] = useState(pokemonQuery);
   const [evolutionChain, setEvolutionChain] = useState([]);
