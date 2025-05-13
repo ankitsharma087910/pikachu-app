@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // Added useRef
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
 import { ClipLoader } from "react-spinners";
+export const dynamic = "force-dynamic";
 
 const getPokemonId = (url) => url.split("/").filter(Boolean).pop();
 
 const EvolutionPage = () => {
-  const searchParams = useSearchParams();
-  const pokemonQuery = searchParams.get("pokemon")?.toLowerCase() || "";
-  const [pokemonName, setPokemonName] = useState(pokemonQuery);
-  const [searchTerm, setSearchTerm] = useState(pokemonQuery);
+  const [pokemonName, setPokemonName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [evolutionChain, setEvolutionChain] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -73,11 +71,11 @@ const EvolutionPage = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Enter Pokémon name..."
-          className="px-4 py-2 rounded-lg text-white w-60"
+          className="px-4 py-2 rounded-lg text-white bg-gray-800 w-60"
         />
         <button
           onClick={handleSearch}
-          className="bg-yellow-500  px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600"
+          className="bg-yellow-500 px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600"
         >
           Search
         </button>
